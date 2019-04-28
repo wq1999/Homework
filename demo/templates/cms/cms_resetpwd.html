@@ -1,0 +1,50 @@
+{% extends 'cms/cms_base.html' %}
+
+{% block title %}修改密码-CMS管理系统{% endblock %}
+
+{% block page_title %}个人中心>>>修改密码{% endblock %}
+
+
+{% block head %}
+    <script src="{{ url_for('static', filename='cms/js/resetpwd.js') }}"></script>
+    <style>
+        .form-container{
+            width: 300px;
+        }
+    </style>
+{% endblock %}
+
+
+{% block main_content %}
+    <form>
+        <div class="form-container">
+            <div class="form-group">
+                <div class="input-group">
+                    <div class="input-group-addon">原密码</div>
+                    <input type="password" class="form-control"  placeholder="原密码" name="oldpwd">
+                </div>
+
+            </div>
+
+            <div class="form-group">
+                <div class="input-group">
+                    <div class="input-group-addon">新密码</div>
+                    <input type="password" class="form-control"  placeholder="新密码" name="newpwd">
+                </div>
+
+            </div>
+
+            <div class="form-group">
+                <div class="input-group">
+                    <div class="input-group-addon">确认新密码</div>
+                    <input type="password" class="form-control"  placeholder="确认新密码" name="newpwd2">
+                </div>
+
+            </div>
+
+            <div class="form-group">
+                <button type="button" class="btn btn-primary" id="submit">立即保存</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

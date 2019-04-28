@@ -1,0 +1,40 @@
+{% extends 'cms/cms_base.html' %}
+
+{% block title %}修改邮箱-CMS管理系统{% endblock %}
+
+{% block page_title %}个人中心>>>修改邮箱{% endblock %}
+
+{% block head %}
+    <style>
+        .form-container{
+            width: 300px;
+        }
+    </style>
+    <script src="{{ url_for('static', filename='cms/js/resetemail.js') }}"></script>
+{% endblock %}
+
+
+{% block main_content %}
+    <form class="form-container">
+      <div class="form-group">
+        <div class="input-group">
+          <input type="email" class="form-control" placeholder="新的邮箱" name="email">
+          <div class="input-group-addon" style="cursor: pointer" id="get_captcha">获取验证码</div>
+        </div>
+      </div>
+
+       <div class="form-group">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="填写验证码" name="captcha">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="input-group">
+          <button type="submit" class="btn btn-primary" id="submit">提交修改</button>
+        </div>
+      </div>
+
+    </form>
+
+{% endblock %}

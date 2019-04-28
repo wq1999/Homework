@@ -1,0 +1,86 @@
+{% extends 'front/front_base.html' %}
+
+{% block title %}
+    个人信息设置
+{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static',filename='front/css/front_settings.css')}}">
+    <script src="https://cdn.staticfile.org/Plupload/2.1.1/moxie.js"></script>
+    <script src="https://cdn.staticfile.org/Plupload/2.1.1/plupload.dev.js"></script>
+    <script src="https://cdn.staticfile.org/qiniu-js-sdk/1.0.14-beta/qiniu.js"></script>
+    <script src="{{ url_for('static', filename='common/js/bbsqiniu.js') }}"></script>
+    <script>
+        $(function () {
+            bbsqiniu.setUp({
+                'domain': 'http://pq0cuhzt7.bkt.clouddn.com/',
+                'browse_btn': 'avatar-img',
+                'uptoken_url': '/c/uptoken/',
+                'success': function (up,file,info) {
+                    var imgTag = $('#avatar-img');
+                    imgTag.attr('src',file.name);
+                }
+            });
+        });
+
+        $(function () {
+            $("#submit-btn").click(function (evnet) {
+                event.preventDefault();
+                var username = $('input[name=username]').val();
+                var realname = $('input[name=realname]').val();
+                var email = $('input[name=email]').val();
+                var signature = $('#signature-area').val();
+                var avatars = $('#avatar-img').attr('src');
+
+                bbsajax.post({
+                    'url': '/settings/',
+                    'data':{
+                        'username': username,
+                        'realname': realname,
+                        'email': email,
+                        'signature': signature,
+                        'avatars':avatars
+                    },
+                    'success': function (data) {
+                        if(data['code'] == 200){
+                            xtalert.alertSuccessToast('恭喜！修改成功！');
+                        }else{
+                            xtalert.alertInfoToast(data['message']);
+                        }
+                    }
+                })
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block body %}
+    <div class="container-inner">
+        <h2>个人信息</h2>
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" class="form-control" placeholder="请输入用户名" name="username" value="{{ g.front_user.username }}">
+            </div>
+            <div class="form-group">
+                <label>真实姓名</label>
+                <input type="text" class="form-control" name="realname" placeholder="请输入真实姓名" value="{{ g.front_user.realname or '' }}">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="text" class="form-control" placeholder="请输入Email" name="email" value="{{ g.front_user.email or '' }}">
+            </div>
+            <div class="form-group">
+                <label>头像</label>
+                <div>
+                    <img src="{{ g.front_user.avatars or url_for('static',filename='common/images/logo.png') }}" class="img-circle avatar-img" alt="点击选择头像" id="avatar-img">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>个性签名</label>
+                <textarea id="signature-area" class="form-control" placeholder="请输入签名" name="signature">{{ g.front_user.signature or '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" id="submit-btn" data-user-id="{{ g.front_user.id }}">保存</button>
+            </div>
+    </div>
+{% endblock %}

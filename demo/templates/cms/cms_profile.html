@@ -1,0 +1,47 @@
+{% extends 'cms/cms_base.html' %}
+
+{% block title %}
+    个人信息-CMS管理系统
+{% endblock %}
+
+{% block page_title %}
+    个人中心>>>个人信息
+{% endblock %}
+
+{% block main_content %}
+    <!--这里使用的是bootstrap的表格样式，中文网站找到'带边框的表格'-->
+    <table class="table table-bordered">
+        <tr>
+            <td>用户名</td>
+            <td>{{ g.cms_user.username }}</td>
+        </tr>
+        <tr>
+            <td>邮箱</td>
+            <td>{{ g.cms_user.email }}</td>
+        </tr>
+        <tr>
+            <td>角色</td>
+            <td>
+                {% for role in g.cms_user.roles %}
+                    {{ role.name }}
+                    {% if not loop.last %},{% endif %}
+                {% endfor %}
+            </td>
+        </tr>
+        <tr>
+            <td>权限</td>
+            <td>
+                {% for role in g.cms_user.roles %}
+                    {{ role.desc }}
+                    {% if not loop.last %}/{% endif %}
+                {% endfor %}
+            </td>
+        </tr>
+        <tr>
+            <td>加入时间</td>
+            <td>{{ g.cms_user.join_time }}</td>
+        </tr>
+
+
+    </table>
+{% endblock %}
