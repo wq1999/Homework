@@ -31,6 +31,12 @@ def post_detail(post_id):
     return render_template('front/front_pdetail.html', post=post)
 
 
+@bp.route('/search/')
+def search():
+    q = request.args.get('query')
+    return q
+
+
 @bp.route('/')
 def index():
     banners = BannerModel.query.order_by(BannerModel.priority.desc()).all()
