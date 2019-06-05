@@ -41,7 +41,7 @@
         {% for board in boards %}
             <tr data-id="{{ board.id }}" data-name="{{ board.name }}">
                 <td>{{ board.name }}</td>
-                <td>暂未实现</td>
+                <td>{{ board.posts|length }}</td>
                 <td>{{ board.create_time }}</td>
                 <td>
                     <button class="btn btn-default btn-xs edit-board-btn">编辑</button>

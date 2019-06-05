@@ -34,20 +34,19 @@ def create_role():
     visitor = CMSRole(name='访问者',desc='可以修改个人信息')
     visitor.permissions = CMSPermission.VISITOR
 
-    # 运营角色(修改个人信息，管理帖子，管理评论，管理前台用户)
-    operator = CMSRole(name='运营', desc='管理帖子，评论，前台用户')
+    # 运营角色(修改个人信息，管理帖子，管理评论，管理轮播图)
+    operator = CMSRole(name='运营', desc='管理帖子，评论，轮播图，板块')
     operator.permissions = (CMSPermission.VISITOR|
                             CMSPermission.POSTER|
                             CMSPermission.COMMENTER|
-                            CMSPermission.FRONTUSER)
+                            CMSPermission.BOARDER)
     # 管理员(拥有绝大部分权限)
-    admin = CMSRole(name='管理员', desc='拥有本系统所有权限')
+    admin = CMSRole(name='管理员', desc='管理帖子，评论，轮播图，板块，前台用户')
     admin.permissions = (CMSPermission.VISITOR|
                          CMSPermission.POSTER|
                          CMSPermission.COMMENTER|
                          CMSPermission.BOARDER|
-                         CMSPermission.FRONTUSER|
-                         CMSPermission.CMSUSER)
+                         CMSPermission.FRONTUSER)
     # 开发者
     developer = CMSRole(name='开发者', desc='开发人员专用')
     developer.permissions = CMSPermission.ALL_PERMISSION
@@ -60,7 +59,6 @@ def create_role():
 @manager.option('-n', '--name', dest='name')
 def add_user_to_rule(email, name):
     user = CMSUser.query.filter_by(email=email).first()
-    print(user)
     if user:
         role = CMSRole.query.filter_by(name=name).first()
         if role:

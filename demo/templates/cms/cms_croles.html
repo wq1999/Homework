@@ -1,13 +1,49 @@
 {% extends 'cms/cms_base.html' %}
 
-{% block title %}
-    CMS组管理-CMS管理系统
+{% block head %}
+    <style>
+        .top-box a{
+            float: right;
+        }
+    </style>
 {% endblock %}
 
+{% block title %}CMS组管理{% endblock %}
+
 {% block page_title %}
-    CMS组管理
+    {{ self.title() }}
 {% endblock %}
 
 {% block main_content %}
-    这是CMS组管理页面
+    <div class="top-box">
+        <a class="btn btn-warning add-board-btn" id="add-board-btn" href="{{ url_for('cms.add_role') }}">添加新组</a>
+    </div>
+    <table class="table table-bordered">
+        <thead>
+            <th>组名</th>
+            <th>描述</th>
+            <th>用户数</th>
+            <th>权限</th>
+            <th>操作</th>
+        </thead>
+        <tbody>
+            {% for role in roles %}
+                <tr>
+                    <td>{{ role.name }}</td>
+                    <td>{{ role.desc }}</td>
+                    <td>{{ role.users|length }}</td>
+                    <td>
+                        {% for permission_dict in role.permission_dicts %}
+                            {{ permission_dict.popitem()[1][1] }}
+                            {% if not loop.last %}，{% endif %}
+                        {% endfor %}
+
+                    </td>
+                    <td>
+                        <a class="btn btn-primary btn-xs edit-role-btn" data-role-id="{{ role.id }}" href="{{ url_for('cms.edit_role',role_id=role.id) }}">编辑</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'front/front_base.html' %}
+
+{% block title %}推荐帖子{% endblock %}
+
+{% block head %}
+    <link href="{{ url_for('static', filename='front/css/front_index.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static',filename='front/css/iconfont/iconfont.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="lg-container">
+        <div class="post-group">
+            <ul class="post-group-head"></ul>
+            <ul class="post-list-group">
+                {% for post in posts %}
+                    <li>
+                        <div class="author-avatar-group">
+                            <img src="{{ post.author.avatars or url_for('static',filename='common/images/logo.png') }}" alt="">
+                        </div>
+                        <div class="post-info-group">
+                            <p class="post-title">
+                                <a href="{{ url_for("front.post_detail",post_id=post.id) }}">{{ post.title }}</a>
+                                {% if post.highlight %}
+                                    <span class="label label-danger">精华帖</span>
+                                {% endif %}
+                            </p>
+                            <p class="post-info">
+                                <span>作者:{{ post.author.username }}</span>
+                                <span>发表时间:{{ post.create_time }}</span>
+                                <span>评论数：{{ post.comments|length }}</span>
+                                <span>阅读数：{{ post.read_count|default(0) }}</span>
+                            </p>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+            {{ pagination.info }}
+            <div style="text-align:center;">
+                {{ pagination.links }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

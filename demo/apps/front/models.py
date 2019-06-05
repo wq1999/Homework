@@ -23,6 +23,7 @@ class FrontUser(db.Model):
     _password = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(50), unique=True)
     realname = db.Column(db.String(50))
+    is_active = db.Column(db.Boolean, default=True)
     avatars = db.Column(db.String(200))
     signature = db.Column(db.String(100))
     gender = db.Column(db.Enum(GenderEnum), default=GenderEnum.UNKNOW)

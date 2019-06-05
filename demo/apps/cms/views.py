@@ -1,10 +1,11 @@
 from flask import Blueprint, views, render_template, request, session
 from flask import redirect, url_for
 from .forms import LoginForm, ResetPwdForm, RestEmailForm
-from .models import CMSUser, CMSPersmission
+from .models import CMSUser, CMSPersmission, CMSRole
 from .decorators import login_required, permission_required
+from apps.front.models import FrontUser
 import config
-from flask import g
+from flask import g,abort
 from exts import db
 from utils import xjson
 from exts import mail
@@ -14,9 +15,10 @@ import string
 import random
 from .forms import AddBannerForm, AddBoardForm,UpdateBoardForm
 from apps.models import BannerModel,BoardModel
-from .forms import UpdateBannerForm
-from apps.models import HighlightPostModel, PostModel
+from .forms import UpdateBannerForm,CMSBlackFrontUserForm,CMSAddUserForm
+from apps.models import HighlightPostModel, PostModel,CommentModel
 from flask_paginate import Pagination, get_page_parameter
+from functools import reduce
 
 bp = Blueprint('cms', __name__, url_prefix='/cms')
 
@@ -262,7 +264,31 @@ def profile():
 @login_required
 @permission_required(CMSPersmission.COMMENTER)
 def comments():
-    return render_template('cms/cms_comments.html')
+    # 当前页面
+    page = request.args.get(get_page_parameter(), type=int, default=1)
+    # 开始位置
+    start = (page - 1) * config.PER_PAGE
+    # 结束位置
+    end = start + config.PER_PAGE
+    total = CommentModel.query.count()
+    pagination = Pagination(bs_version=3, page=page, total=total)
+    comment = CommentModel.query.slice(start, end)
+    return render_template('cms/cms_comments.html', comment=comment, pagination=pagination)
+
+
+@bp.route('/dcomment/', methods=['POST'])
+@login_required
+@permission_required(CMSPersmission.COMMENTER)
+def dcomment():
+    comment_id = request.form.get('comment_id')
+    if not comment_id:
+        return xjson.json_params_error(message='请传入评论id')
+    comment = CommentModel.query.get(comment_id)
+    if not comment:
+        return xjson.json_params_error(message='没有这个评论')
+    db.session.delete(comment)
+    db.session.commit()
+    return xjson.json_success(message='删除评论成功')
 
 
 @bp.route('/boards/')
@@ -280,21 +306,193 @@ def boards():
 @login_required
 @permission_required(CMSPersmission.FRONTUSER)
 def fusers():
-    return render_template('cms/cms_fuser.html')
+    sort = request.args.get('sort')
+    # 1:  按加入时间排序
+    # 2： 按发表帖子数量排序
+    # 3： 按评论数量排序
+    front_users = None
+    # 如果没有sort，默认按时间排序
+    if not sort or sort == '1':
+        front_users = FrontUser.query.order_by(FrontUser.join_time.desc()).all()
+    else:
+        front_users = FrontUser.query.all()
+    context = {
+        'front_users': front_users,
+        'current_sort': sort
+    }
+    return render_template('cms/cms_fuser.html', **context)
+
+
+@bp.route('/edit_frontuser/')
+@login_required
+@permission_required(CMSPersmission.FRONTUSER)
+def edit_frontuser():
+    user_id = request.args.get('id')
+    if not user_id:
+        abort(404)
+
+    user = FrontUser.query.get(user_id)
+    if not user:
+        abort(404)
+
+    return render_template('cms/cms_editfuser.html', current_user=user)
+
+
+@bp.route('/black_front_user/', methods=['POST'])
+def black_front_user():
+    form = CMSBlackFrontUserForm(request.form)
+    if form.validate():
+        user_id = form.user_id.data
+        is_black = form.is_black.data
+        user = FrontUser.query.get(user_id)
+        if not user:
+            abort(404)
+
+        user.is_active = not is_black
+        db.session.commit()
+        return xjson.json_success(message="成功移出黑名单")
+    else:
+        return xjson.json_params_error(message=form.get_error())
 
 
 @bp.route('/cusers/')
 @login_required
 @permission_required(CMSPersmission.CMSUSER)
 def cusers():
-    return render_template('cms/cms_cusers.html')
+    users = CMSUser.query.all()
+    context = {
+        'users': users
+    }
+    return render_template('cms/cms_cusers.html', **context)
+
+
+@bp.route('/add_cmsuser/',methods=['GET','POST'])
+@login_required
+@permission_required(CMSPersmission.CMSUSER)
+def add_cmsuser():
+    if request.method == 'GET':
+        roles = CMSRole.query.all()
+        context = {
+            'roles': roles
+        }
+        return render_template('cms/cms_addcmsuser.html',**context)
+    else:
+        form = CMSAddUserForm(request.form)
+        if form.validate():
+            email = form.email.data
+            username = form.username.data
+            password = form.password.data
+            roles = request.form.getlist('roles[]')
+            if not roles:
+                return xjson.json_params_error(message=u'必须指定最少一个分组！')
+            user = CMSUser(email=email,username=username,password=password)
+            for role_id in roles:
+                role = CMSRole.query.get(role_id)
+                role.users.append(user)
+                # 如果是通过user.roles.append(role)
+                # 那么还需要通过db.session.add(user)添加用户到session中
+                # 这是因为user还没有添加到数据库中
+            db.session.commit()
+            return xjson.json_success()
+        else:
+            return xjson.json_params_error(message=form.get_error())
+
+
+@bp.route('/edit_cmsuser/',methods=['GET','POST'])
+@login_required
+@permission_required(CMSPersmission.CMSUSER)
+def edit_cmsuser():
+    if request.method == 'GET':
+        user_id = request.args.get('user_id')
+        if not user_id:
+            abort(404)
+        user = CMSUser.query.get(user_id)
+        roles = CMSRole.query.all()
+        current_roles = [role.id for role in user.roles]
+        context = {
+            'user': user,
+            'roles': roles,
+            'current_roles': current_roles
+        }
+        return render_template('cms/cms_editcmsuser.html',**context)
+    else:
+        user_id = request.form.get('user_id')
+        roles = request.form.getlist('roles[]')
+        if not user_id:
+            return xjson.json_params_error(message=u'没有指定id！')
+        if not roles:
+            return xjson.json_params_error(message=u'必须指定一个组！')
+
+        user = CMSUser.query.get(user_id)
+        # 清掉之前的角色信息
+        user.roles[:] = []
+        # 添加新的角色
+        for role_id in roles:
+            role_model = CMSRole.query.get(role_id)
+            user.roles.append(role_model)
+        db.session.commit()
+        return xjson.json_success()
 
 
 @bp.route('/croles/')
 @login_required
 @permission_required(CMSPersmission.ADMIN)
 def croles():
-    return render_template('cms/cms_croles.html')
+    roles = CMSRole.query.all()
+    return render_template('cms/cms_croles.html', roles=roles)
+
+
+@bp.route('/add_role/',methods=['GET','POST'])
+@login_required
+@permission_required(CMSPersmission.ADMIN)
+def add_role():
+    if request.method == 'GET':
+        permissions = CMSPersmission.PERMISSION_MAP
+        return render_template('cms/cms_addrole.html',permissions=permissions)
+    else:
+        name = request.form.get('name')
+        desc = request.form.get('desc')
+        permissions = request.form.getlist('permissions[]')
+        all_permission = 0
+        for x in permissions:
+            all_permission |= int(x)
+        role = CMSRole(name=name,desc=desc,permissions=all_permission)
+        db.session.add(role)
+        db.session.commit()
+        return xjson.json_success()
+
+
+@bp.route('/edit_role/',methods=['POST','GET'])
+@login_required
+@permission_required(CMSPersmission.ADMIN)
+def edit_role():
+    if request.method == 'GET':
+        role_id = request.args.get('role_id')
+        role = CMSRole.query.filter_by(id=role_id).first()
+        permissions = CMSPersmission.PERMISSION_MAP
+        context = {
+            'role': role,
+            'permissions': permissions
+        }
+        return render_template('cms/cms_addrole.html',**context)
+    else:
+        role_id = request.form.get('role_id')
+        name = request.form.get('name')
+        desc = request.form.get('desc')
+        permissions = request.form.get('permissions[]')
+        role = CMSRole.query.filter_by(id=role_id).first()
+        role.name = name
+        role.desc = desc
+        role.permissions = reduce(lambda x,y:int(x)|int(y),permissions)
+        db.session.commit()
+        return xjson.json_success()
+
+
+@bp.route('/dataAnalyse/')
+@login_required
+@permission_required(CMSPersmission.ADMIN)
+def dataAnalyse():
+    return render_template('cms/cms_dataAnalyse.html')
 
 
 class LoginView(views.MethodView):
@@ -317,7 +515,7 @@ class LoginView(views.MethodView):
             else:
                 # return render_template('cms/cms_login.html', message='账号或密码错误')
                 # 等同于以下代码
-                return self.get(message='账号或密码错误')
+                return self.get(message='邮箱或密码错误')
 
         else:
             # login_form.errors是一个字典，如{"email":['邮箱格式错误'], "password":["密码长度为6-20位"]}

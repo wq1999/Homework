@@ -53,4 +53,8 @@ $(function () {
         var bannerManageLi = $(".banner-manage");
         bannerManageLi.addClass('unfold').siblings().removeClass('unfold');
     }
+    else if(url.indexOf("dataAnalyse") >= 0){
+        var bannerManageLi = $(".data-manage");
+        bannerManageLi.addClass('unfold').siblings().removeClass('unfold');
+    }
 });

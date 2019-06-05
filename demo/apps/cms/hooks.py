@@ -2,7 +2,7 @@ from flask import session, g
 import config
 from .views import bp
 from .models import CMSUser
-from .models import  CMSPersmission
+from .models import CMSPersmission
 
 
 @bp.before_request

@@ -33,7 +33,7 @@
                 {% for comment in post.comments %}
                     <li>
                         <div class="avatar-group">
-                            <img src="{{ post.author.avatars or url_for('static',filename='common/images/logo.png') }}" alt="">
+                            <img src="{{ comment.author.avatars or url_for('static',filename='common/images/logo.png') }}" alt="">
                         </div>
                         <div class="comment-content">
                             <p class="author-info">

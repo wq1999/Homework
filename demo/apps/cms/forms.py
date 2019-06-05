@@ -54,3 +54,14 @@ class AddBoardForm(BaseForm):
 
 class UpdateBoardForm(AddBoardForm):
     board_id = IntegerField(validators=[InputRequired(message='请输入板块id')])
+
+
+class CMSBlackFrontUserForm(BaseForm):
+    user_id = StringField(validators=[InputRequired(message=u'必须传入id！')])
+    is_black = IntegerField(validators=[InputRequired(message=u'必须指定是否加入黑名单！')])
+
+
+class CMSAddUserForm(BaseForm):
+    email = StringField(validators=[InputRequired(message=u'必须输入邮箱！'), Email(message=u'邮箱格式不满足！')])
+    username = StringField(validators=[InputRequired(message=u'必须输入用户名！')])
+    password = StringField(validators=[InputRequired(message=u'必须输入密码！'), Length(6, 20, message=u'密码长度必须在6-20个字符之间！')])

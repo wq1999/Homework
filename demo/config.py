@@ -41,7 +41,7 @@ UEDITOR_UPLOAD_TO_QINIU = True  # 如果上传到七牛这里设置为True，上
 UEDITOR_QINIU_ACCESS_KEY = "Y9ePn56AAscdcibCD4bzGzbIu07pcDEiQt_zUwHN"
 UEDITOR_QINIU_SECRET_KEY = "ur1iSKXt8Ad3L9olAsd3XJZcavzVjdcLyV120TzX"
 UEDITOR_QINIU_BUCKET_NAME = "demo"
-UEDITOR_QINIU_DOMAIN = 'http://pq0cuhzt7.bkt.clouddn.com/'
+UEDITOR_QINIU_DOMAIN = 'http://prlevuauy.bkt.clouddn.com/'
 
 # 每页显示10篇帖子
 PER_PAGE = 10

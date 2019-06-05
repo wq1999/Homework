@@ -68,6 +68,16 @@ class CMSPersmission(object):
     CMSUSER = 0b00100000
     # 管理后台管理员的权限
     ADMIN = 0b01000000
+    PERMISSION_MAP = {
+        ALL_PERMISSION: ('开发者', ' 开发者专用'),
+        VISITOR: ('访问者', '访问权限'),
+        POSTER: ('帖子操作', '管理帖子'),
+        COMMENTER: ('评论操作', '管理评论'),
+        BOARDER: ('轮播图操作', '管理轮播图'),
+        FRONTUSER: ('论坛用户操作', '管理前台用户'),
+        CMSUSER: ('CMS用户管理', '管理CMS用户'),
+        ADMIN: ('CMS组管理', '管理CMS组'),
+    }
 
 
 cms_role_user = db.Table(
@@ -87,3 +97,19 @@ class CMSRole(db.Model):
 
     users = db.relationship('CMSUser', secondary=cms_role_user, backref='roles')
 
+    @property
+    def permission_dicts(self):
+
+        all_permissions = self.permissions
+        permission_dict_list = []
+
+        # 如果是超级管理员
+        if all_permissions == CMSPersmission.ALL_PERMISSION:
+            permission_dict_list = [
+                {CMSPersmission.ALL_PERMISSION: CMSPersmission.PERMISSION_MAP[CMSPersmission.ALL_PERMISSION]}]
+        else:
+            for permission, permission_info in CMSPersmission.PERMISSION_MAP.items():
+                if permission & all_permissions == permission:
+                    permission_dict_list.append({permission: permission_info})
+
+        return permission_dict_list

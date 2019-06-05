@@ -111,7 +111,7 @@ $(function () {
 
 $(function () {
     bbsqiniu.setUp({
-        'domain': 'http://pq0cuhzt7.bkt.clouddn.com/',   //七牛的域名
+        'domain': 'http://prlevuauy.bkt.clouddn.com/',   //七牛的域名
         'browse_btn': 'upload-btn',   //按钮的id
         'uptoken_url': '/c/uptoken/',   //后端的url获取token
         'success': function (up,file,info) {

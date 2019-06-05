@@ -1,0 +1,63 @@
+{% extends 'cms/cms_base.html' %}
+
+{% block head %}
+    <script src="{{ url_for('static',filename='cms/js/cms_addrole.js') }}"></script>
+{% endblock %}
+
+{% block title %}
+    {% if role %}
+        编辑CMS组
+    {% else %}
+        添加CMS组
+    {% endif %}
+{% endblock %}
+
+{% block page_title %}
+    {{ self.title() }}
+{% endblock %}
+
+{% block main_content %}
+    <form action="" method="POST">
+        <div class="form-min">
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon">组名</span>
+                    {% if role %}
+                        <input name="name" type="text" class="form-control" value="{{ role.name }}" />
+                    {% else %}
+                        <input name="name" type="text" class="form-control" />
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon">描述</span>
+                    {% if role %}
+                        <input type="text" name="desc" class="form-control" value="{{ role.desc }}">
+                    {% else %}
+                        <input type="text" name="desc" class="form-control">
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-group">
+                {% for permission_number,permission_tuple in permissions.items() %}
+                    <label class="checkbox-inline">
+                        {% if role and role.permissions == permission_number %}
+                        <input type="checkbox" name="permission" value="{{ permission_number }}" checked="checked">{{ permission_tuple[0] }}
+                        {% else %}
+                        <input type="checkbox" name="permission" value="{{ permission_number }}">{{ permission_tuple[0] }}
+                        {% endif %}
+                    </label>
+                {% endfor %}
+
+            </div>
+            <div class="form-group">
+                {% if role %}
+                    <button class="btn btn-primary" type="submit" id="submit-btn" data-role-id="{{ role.id }}">立即修改</button>
+                {% else %}
+                    <button class="btn btn-primary" type="submit" id="submit-btn">立即添加</button>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+{% endblock %}

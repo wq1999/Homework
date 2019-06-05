@@ -14,6 +14,8 @@ from .forms import AddCommentForm
 from apps.models import CommentModel
 from apps.models import HighlightPostModel
 from sqlalchemy.sql import func
+from utils.postRecommend import get_ratings, recommend_item
+from utils.hotPosts import get_hot_score
 
 bp = Blueprint('front', __name__)
 
@@ -32,16 +34,48 @@ def post_detail(post_id):
 
 
 @bp.route('/search/')
+@login_required
 def search():
     q = request.args.get('query')
-    return q
+    # 当前页面
+    page = request.args.get(get_page_parameter(), type=int, default=1)
+    # 开始位置
+    start = (page - 1) * config.PER_PAGE
+    # 结束位置
+    end = start + config.PER_PAGE
+    posts = PostModel.query.filter(PostModel.title.contains(q), PostModel.content.contains(q))
+    posts = posts.slice(start, end)
+    total = posts.count()
+    pagination = Pagination(bs_version=4, page=page, total=total)
+    return render_template('front/front_query.html', posts=posts, pagination=pagination)
+
+
+# @bp.route('/recommend_post/<user_name>')
+# def recommend_post(user_name):
+#     ratings = get_ratings()
+#     # 当前页面
+#     page = request.args.get(get_page_parameter(), type=int, default=1)
+#     # 开始位置
+#     start = (page - 1) * config.PER_PAGE
+#     # 结束位置
+#     end = start + config.PER_PAGE
+#     recommend_post = recommend_item(user_name, ratings, 2)
+#     posts = PostModel.query.filter(PostModel.id == recommend_post)
+#     posts = posts.slice(start, end)
+#     total = posts.count()
+#     pagination = Pagination(bs_version=4, page=page, total=total)
+#     return render_template('front/recommend_post.html', posts=posts, pagination=pagination)
 
 
 @bp.route('/')
 def index():
     banners = BannerModel.query.order_by(BannerModel.priority.desc()).all()
     boards = BoardModel.query.all()
-
+    posts1 = PostModel.query.all()
+    hot_scores = get_hot_score()
+    for i in range(len(hot_scores)):
+        posts1[i].hot_score = hot_scores[i]
+    db.session.commit()
     # 当前页面
     page = request.args.get(get_page_parameter(), type=int, default=1)
     # 开始位置
@@ -73,16 +107,37 @@ def index():
     else:
         posts = query_obj.slice(start, end)
         total = query_obj.count()
-
-    pagination = Pagination(bs_version=4,page=page, total=total)
+    query_obj1 = PostModel.query.order_by(PostModel.hot_score.desc())
+    hot_posts = query_obj1.all()
+    pagination = Pagination(bs_version=4, page=page, total=total)
     context = {
         'banners': banners,
         'boards': boards,
         'posts': posts,
         'pagination': pagination,
         'current_board': board_id,
-        'current_sort': sort
+        'current_sort': sort,
+        'hot_posts': hot_posts
     }
+    if config.FRONT_USER_ID in session:
+        user_id = session.get(config.FRONT_USER_ID)
+        user = FrontUser.query.get(user_id)
+        if user:
+            user_name = user.username
+            ratings = get_ratings()
+            recommend_post = recommend_item(user_name, ratings, 2)
+            recommend_posts = PostModel.query.filter(PostModel.id == recommend_post)
+            recommend_list = recommend_posts.all()
+            context = {
+                'banners': banners,
+                'boards': boards,
+                'posts': posts,
+                'pagination': pagination,
+                'current_board': board_id,
+                'current_sort': sort,
+                'hot_posts': hot_posts,
+                'recommend_list': recommend_list
+            }
     return render_template('front/front_index.html', **context)
 
 
@@ -139,7 +194,23 @@ def profile(user_id=0):
         return abort(404)
 
 
-@bp.route('/acomment/',methods=['POST'])
+@bp.route('/profile/posts/', methods=['GET'])
+def profile_posts():
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return abort(404)
+
+    user = FrontUser.query.get(user_id)
+    if user:
+        context = {
+            'current_user': user,
+        }
+        return render_template('front/front_profile_posts.html', **context)
+    else:
+        return abort(404)
+
+
+@bp.route('/acomment/', methods=['POST'])
 @login_required
 def add_comment():
     add_comment_form = AddCommentForm(request.form)
