@@ -19,13 +19,14 @@ from .forms import UpdateBannerForm,CMSBlackFrontUserForm,CMSAddUserForm
 from apps.models import HighlightPostModel, PostModel,CommentModel
 from flask_paginate import Pagination, get_page_parameter
 from functools import reduce
-
+from utils.data_analyse import draw_pic
 bp = Blueprint('cms', __name__, url_prefix='/cms')
 
 
 @bp.route('/')
 @login_required
 def index():
+    draw_pic()
     return render_template('cms/cms_index.html')
 
 
@@ -40,7 +41,7 @@ def posts():
     # 结束位置
     end = start + config.PER_PAGE
     total = PostModel.query.count()
-    pagination = Pagination(bs_version=3, page=page,total=total)
+    pagination = Pagination(bs_version=4, page=page,total=total)
     posts = PostModel.query.slice(start, end)
     return render_template('cms/cms_posts.html', posts=posts, pagination=pagination)
 
@@ -271,7 +272,7 @@ def comments():
     # 结束位置
     end = start + config.PER_PAGE
     total = CommentModel.query.count()
-    pagination = Pagination(bs_version=3, page=page, total=total)
+    pagination = Pagination(bs_version=4, page=page, total=total)
     comment = CommentModel.query.slice(start, end)
     return render_template('cms/cms_comments.html', comment=comment, pagination=pagination)
 
@@ -486,13 +487,6 @@ def edit_role():
         role.permissions = reduce(lambda x,y:int(x)|int(y),permissions)
         db.session.commit()
         return xjson.json_success()
-
-
-@bp.route('/dataAnalyse/')
-@login_required
-@permission_required(CMSPersmission.ADMIN)
-def dataAnalyse():
-    return render_template('cms/cms_dataAnalyse.html')
 
 
 class LoginView(views.MethodView):

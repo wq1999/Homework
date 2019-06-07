@@ -15,6 +15,7 @@ def get_hot_score():
     comment_data['comment_num'] = 1
     comment_data = comment_data.groupby('post_id').agg('sum').reset_index()
     post_data = pd.merge(post_data, comment_data, on='post_id', how='left')
+    post_data = post_data.fillna(0)
     now = datetime.now()
     for i in post_data.index:
          days = (now - post_data.loc[i, 'create_time']).days

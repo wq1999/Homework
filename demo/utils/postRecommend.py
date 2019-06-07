@@ -47,8 +47,6 @@ def predictitembased(user_name, post_id, ratings, k):
     new_rating = pd.DataFrame({'similarity': csim_list, 'rating': rating[user_name]}, index=rating.index)
     topK = new_rating.sort_values('similarity', ascending=False)[1:(1+k)]
     topK = topK[topK['rating'] != 0]
-    # print(new_rating)
-    # print(topK)
     mean_rating = rating.loc[post_id, :].mean()
     sum = 0
     for i in topK.index:
@@ -70,5 +68,5 @@ def recommend_item(user_name, ratings, k):
     recommend_list = pd.DataFrame()
     recommend_list['post_id'] = post_ids
     recommend_list['ratings'] = preds
-    recommend_list = recommend_list.sort_values('ratings', ascending=False)[0:1]
-    return recommend_list['post_id'].values.tolist()[0]
+    recommend_list = recommend_list.sort_values('ratings', ascending=False)[0:k]
+    return recommend_list['post_id'].values.tolist()[0:k]

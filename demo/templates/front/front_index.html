@@ -140,12 +140,13 @@
                                 <span>发表时间:{{ post.create_time }}</span>
                                 <span>评论数：{{ post.comments|length }}</span>
                                 <span>阅读数：{{ post.read_count|default(0) }}</span>
+                                <br>
+                                <span>摘要：{{ post.summarys }}</span>
                             </p>
                         </div>
                     </li>
                 {% endfor %}
             </ul>
-            {{ pagination.info }}
             <div style="text-align:center;">
                 {{ pagination.links }}
             </div>
@@ -199,6 +200,11 @@
                     </li>
                 {% endfor %}
             </ul>
+        </div>
+    </div>
+
+    <div class="sm-container">
+        <div class="post-group">
             {% if g.front_user %}
                 <ul class="post-group-head">
                     <li>

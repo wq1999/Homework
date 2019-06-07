@@ -7,3 +7,17 @@
 {% block  page_title %}
     欢迎来到CMS管理系统
 {% endblock %}
+
+{% block main_content %}
+    <table>
+    <tr>
+        <td>
+            <a><img src="{{url_for('static',filename='image/board_data.jpg') }}" alt="" height="400" width="500"></a>
+        </td>
+        <td>
+            <a><img src="{{url_for('static',filename='image/comment_data.jpg') }}" alt="" height="400" width="500"></a>
+        </td>
+    </tr>
+    </table>
+
+{% endblock %}
