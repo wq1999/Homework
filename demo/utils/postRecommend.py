@@ -47,22 +47,37 @@ def predictitembased(user_name, post_id, ratings, k):
     new_rating = pd.DataFrame({'similarity': csim_list, 'rating': rating[user_name]}, index=rating.index)
     topK = new_rating.sort_values('similarity', ascending=False)[1:(1+k)]
     topK = topK[topK['rating'] != 0]
-    mean_rating = rating.loc[post_id, :].mean()
-    sum = 0
-    for i in topK.index:
-        sum += (topK.loc[i, 'rating'] - rating.loc[i, :].mean()) * topK.loc[i, 'similarity']
-    pred = (sum / topK['similarity'].sum()) + mean_rating
-    # print(user_name + '->' + str(post_id) + ' rating: ' + str(pred))
+    if len(topK) > 0:
+        mean_rating = rating.loc[post_id, :].mean()
+        sum = 0
+        for i in topK.index:
+            sum += (topK.loc[i, 'rating'] - rating.loc[i, :].mean()) * topK.loc[i, 'similarity']
+        pred = (sum / topK['similarity'].sum()) + mean_rating
+        # print(user_name + '->' + str(post_id) + ' rating: ' + str(pred))
+    else:
+        pred = 0
     return pred
 
 
 def recommend_item(user_name, ratings, k):
+    engine = create_engine('mysql+pymysql://root:wq19990306@localhost/demo1?charset=utf8', encoding='utf8')
+    conn = engine.connect()
+    post_data = pd.read_sql_table('post', conn)
+    post_data = post_data[['id', 'hot_score']]
     preds = []
     post_ids = []
     for i in ratings.columns:
         if (ratings.loc[user_name, i] == 0):
-            preds.append(predictitembased(user_name, i, ratings, k))
-            post_ids.append(i)
+            if predictitembased(user_name, i, ratings, k) != 0:
+                preds.append(predictitembased(user_name, i, ratings, k))
+                post_ids.append(i)
+            else:
+                for j in range(len(post_data)):
+                    if post_data.loc[j, 'id'] == i:
+                        idx = j
+                        break
+                preds.append(post_data.loc[idx, 'hot_score'])
+                post_ids.append(i)
         else:
             pass
     recommend_list = pd.DataFrame()
