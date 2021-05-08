@@ -16,7 +16,7 @@ Django==1.11.6
 docutils==0.14
 enum-compat==0.0.2
 et-xmlfile==1.0.1
-eventlet==0.21.0
+eventlet==0.31.0
 Flask==0.12.2
 Flask-Mail==0.9.1
 Flask-Migrate==2.1.1
