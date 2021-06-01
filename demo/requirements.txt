@@ -62,7 +62,7 @@ six==1.11.0
 smart-open==1.8.4
 SQLAlchemy==1.1.14
 textrank4zh==0.3
-urllib3==1.22
+urllib3==1.26.5
 vine==1.1.4
 Werkzeug==0.12.2
 WTForms==2.1
